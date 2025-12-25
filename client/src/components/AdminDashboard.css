@@ -352,6 +352,92 @@
   color: #721c24;
 }
 
+/* Returns Section */
+.returns-section {
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.returns-section h2 {
+  color: #333;
+  margin: 0 0 0.5rem 0;
+}
+
+.returns-section p {
+  color: #666;
+  margin-bottom: 1.5rem;
+  font-style: italic;
+}
+
+.issued-books-table table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.issued-books-table th,
+.issued-books-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.issued-books-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
+}
+
+.issued-books-table tr:hover {
+  background: #f8f9fa;
+}
+
+.issued-books-table tr.overdue {
+  background: #fff5f5;
+  border-left: 4px solid #e53e3e;
+}
+
+.return-book-button {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.return-book-button:hover {
+  background: #218838;
+  transform: scale(1.02);
+}
+
+.normal-days {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.warning-days {
+  color: #ffc107;
+  font-weight: 600;
+}
+
+.overdue-days {
+  color: #dc3545;
+  font-weight: 600;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
 /* Students Section */
 .students-section {
   background: white;

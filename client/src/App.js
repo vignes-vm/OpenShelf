@@ -198,7 +198,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <div className="header-content">
-          <h1>📚 OpenShelf Library Kiosk</h1>
+          <h1>📚 OpenShelf</h1>
           <p>Frictionless Book Discovery & Reservation</p>
           <button 
             className="admin-toggle"

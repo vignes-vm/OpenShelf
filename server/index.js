@@ -10,7 +10,7 @@ const PORT = 5000;
 
 // Middleware
 app.use(cors({
-    origin: 'http://localhost:3000',
+    origin: ['http://localhost:3000', 'http://localhost:3001'],
     credentials: true
 }));
 app.use(express.json());
@@ -326,6 +326,27 @@ app.post('/api/admin/return', requireAuth, async (req, res) => {
         console.error('Error returning book:', err);
         res.status(500).json({ error: 'Database error' });
     }
+});
+
+// Get all issued books
+app.get('/api/admin/issued-books', requireAuth, async (req, res) => {
+  try {
+    const query = `
+      SELECT t.id, t.book_id, t.roll_no, t.created_at,
+             b.title, b.author, b.isbn,
+             s.name as student_name, s.dept
+      FROM transactions t
+      JOIN books b ON t.book_id = b.id
+      JOIN students s ON t.roll_no = s.roll_no
+      WHERE t.action_type = 'issue' AND t.status = 'active'
+      ORDER BY t.created_at ASC
+    `;
+    const result = await pool.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching issued books:', err);
+    res.status(500).json({ error: 'Database error' });
+  }
 });
 
 // Search by roll number

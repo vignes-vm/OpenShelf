@@ -7,6 +7,7 @@ const AdminDashboard = ({ onLogout }) => {
   const [holds, setHolds] = useState([]);
   const [books, setBooks] = useState([]);
   const [students, setStudents] = useState([]);
+  const [issuedBooks, setIssuedBooks] = useState([]);
   const [studentSearch, setStudentSearch] = useState('');
   const [studentResults, setStudentResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -33,6 +34,8 @@ const AdminDashboard = ({ onLogout }) => {
       fetchBooks();
     } else if (activeTab === 'students') {
       fetchStudents();
+    } else if (activeTab === 'returns') {
+      fetchIssuedBooks();
     }
   }, [activeTab]);
 
@@ -76,6 +79,20 @@ const AdminDashboard = ({ onLogout }) => {
     }
   };
 
+  const fetchIssuedBooks = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('http://localhost:5000/api/admin/issued-books', {
+        withCredentials: true
+      });
+      setIssuedBooks(response.data);
+    } catch (error) {
+      console.error('Error fetching issued books:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleIssue = async (transactionId) => {
     try {
       await axios.post('http://localhost:5000/api/admin/issue', 
@@ -90,13 +107,22 @@ const AdminDashboard = ({ onLogout }) => {
   };
 
   const handleReturn = async (bookId, rollNo) => {
+    if (!window.confirm('Mark this book as returned and make it available?')) {
+      return;
+    }
+    
     try {
       await axios.post('http://localhost:5000/api/admin/return', 
         { bookId, rollNo }, 
         { withCredentials: true }
       );
-      alert('Book returned successfully!');
+      alert('Book returned successfully and is now available!');
       fetchBooks();
+      fetchIssuedBooks();
+      // Refresh student search if showing results
+      if (studentResults.length > 0) {
+        searchStudent();
+      }
     } catch (error) {
       alert(error.response?.data?.error || 'Error returning book');
     }
@@ -197,6 +223,12 @@ const AdminDashboard = ({ onLogout }) => {
           onClick={() => setActiveTab('inventory')}
         >
           📚 Inventory
+        </button>
+        <button
+          className={activeTab === 'returns' ? 'active' : ''}
+          onClick={() => setActiveTab('returns')}
+        >
+          📤 Returns ({issuedBooks.length})
         </button>
         <button
           className={activeTab === 'students' ? 'active' : ''}
@@ -406,6 +438,67 @@ const AdminDashboard = ({ onLogout }) => {
                 </table>
               )}
             </div>
+          </div>
+        )}
+
+        {activeTab === 'returns' && (
+          <div className="returns-section">
+            <h2>Issued Books - Ready for Return</h2>
+            <p>Click "Return Book" to mark books as returned and make them available again.</p>
+            
+            {loading ? (
+              <div>Loading...</div>
+            ) : issuedBooks.length === 0 ? (
+              <div className="empty-state">No books currently issued</div>
+            ) : (
+              <div className="issued-books-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Book</th>
+                      <th>Student</th>
+                      <th>Department</th>
+                      <th>Issued Date</th>
+                      <th>Days Issued</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {issuedBooks.map((issue) => {
+                      const issuedDays = Math.floor((new Date() - new Date(issue.created_at)) / (1000 * 60 * 60 * 24));
+                      return (
+                        <tr key={issue.id} className={issuedDays > 14 ? 'overdue' : ''}>
+                          <td>
+                            <strong>{issue.title}</strong><br />
+                            <small>by {issue.author}</small>
+                            {issue.isbn && <><br /><small>ISBN: {issue.isbn}</small></>}
+                          </td>
+                          <td>
+                            <strong>{issue.student_name}</strong><br />
+                            <small>{issue.roll_no}</small>
+                          </td>
+                          <td>{issue.dept}</td>
+                          <td>{new Date(issue.created_at).toLocaleDateString()}</td>
+                          <td>
+                            <span className={issuedDays > 14 ? 'overdue-days' : issuedDays > 7 ? 'warning-days' : 'normal-days'}>
+                              {issuedDays} days
+                            </span>
+                          </td>
+                          <td>
+                            <button
+                              onClick={() => handleReturn(issue.book_id, issue.roll_no)}
+                              className="return-book-button"
+                            >
+                              📤 Return Book
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
 
