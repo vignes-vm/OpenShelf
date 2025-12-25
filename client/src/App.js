@@ -1,5 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ThemeProvider } from './contexts/ThemeContext';
+import ThemeToggle from './components/ThemeToggle';
 import './App.css';
 
 // Components
@@ -10,14 +12,17 @@ import AdminDashboard from './components/AdminDashboard';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/kiosk" element={<StudentKiosk />} />
-        <Route path="/admin/:role" element={<AdminLogin />} />
-        <Route path="/dashboard" element={<AdminDashboard />} />
-      </Routes>
-    </Router>
+    <ThemeProvider>
+      <Router>
+        <ThemeToggle />
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/kiosk" element={<StudentKiosk />} />
+          <Route path="/admin/:role" element={<AdminLogin />} />
+          <Route path="/dashboard" element={<AdminDashboard />} />
+        </Routes>
+      </Router>
+    </ThemeProvider>
   );
 }
 

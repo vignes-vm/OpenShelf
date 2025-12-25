@@ -1,221 +1,296 @@
 .landing-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
+  height: 100%;
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+  overflow-x: hidden;
+  position: relative;
 }
 
 .landing-container {
   width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .landing-header {
   text-align: center;
-  color: white;
-  margin-bottom: 3rem;
+  padding: 4rem 2rem 3rem 2rem;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  color: var(--text-on-primary);
+  margin: 0;
+  width: 100%;
+  clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+  position: relative;
+  overflow: hidden;
+  min-height: 50vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.landing-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+  opacity: 0.1;
 }
 
 .landing-header h1 {
-  font-size: 3.5rem;
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 800;
   margin: 0 0 1rem 0;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 1;
 }
 
 .tagline {
   font-size: 1.3rem;
   opacity: 0.9;
-  margin: 0;
-  font-style: italic;
+  font-weight: 300;
+  letter-spacing: 1px;
+  position: relative;
+  z-index: 1;
 }
 
 .landing-main {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 20px;
+  flex: 1;
   padding: 2rem;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(10px);
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .access-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 2rem;
-  margin-bottom: 3rem;
+  margin-bottom: 4rem;
+  width: 100%;
 }
 
 .access-card {
-  background: white;
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border: 1px solid #e9ecef;
+  background: var(--card-bg);
+  border-radius: var(--radius-2xl);
+  padding: 2.5rem;
   text-align: center;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.access-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  transition: transform 0.3s ease;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.student-card::before {
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+}
+
+.librarian-card::before {
+  background: linear-gradient(90deg, var(--accent-color), var(--primary-color));
+}
+
+.principal-card::before {
+  background: linear-gradient(90deg, var(--secondary-color), var(--danger-color));
 }
 
 .access-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-xl);
+}
+
+.access-card:hover::before {
+  transform: scaleX(1);
 }
 
 .card-icon {
   font-size: 4rem;
-  margin-bottom: 1rem;
-  display: block;
+  margin-bottom: 1.5rem;
+  height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .access-card h2 {
-  color: #333;
-  margin: 0 0 0.5rem 0;
-  font-size: 1.5rem;
+  color: var(--text-primary);
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
 }
 
 .access-card p {
-  color: #666;
-  margin-bottom: 1.5rem;
-  font-size: 1rem;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+  line-height: 1.5;
 }
 
 .feature-list {
   text-align: left;
-  margin: 1.5rem 0;
-  padding: 0;
   list-style: none;
+  padding: 0;
+  margin-bottom: 2rem;
 }
 
 .feature-list li {
-  padding: 0.5rem 0;
-  color: #555;
-  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
+  padding-left: 0.5rem;
+  font-size: 1rem;
   display: flex;
   align-items: center;
+  gap: 0.5rem;
 }
 
 .access-button {
   width: 100%;
   padding: 1rem 2rem;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-xl);
   font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-top: 1rem;
+  position: relative;
+  overflow: hidden;
 }
 
 .student-button {
-  background: linear-gradient(135deg, #28a745, #20c997);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: var(--text-on-primary);
+  box-shadow: var(--shadow-md);
 }
 
 .student-button:hover {
-  background: linear-gradient(135deg, #218838, #1ea07a);
-  transform: scale(1.02);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
 .librarian-button {
-  background: linear-gradient(135deg, #007bff, #0056b3);
-  color: white;
+  background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
+  color: var(--text-on-primary);
+  box-shadow: var(--shadow-md);
 }
 
 .librarian-button:hover {
-  background: linear-gradient(135deg, #0056b3, #004085);
-  transform: scale(1.02);
+  background: linear-gradient(135deg, var(--accent-hover), var(--primary-hover));
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
 .principal-button {
-  background: linear-gradient(135deg, #6f42c1, #5a35a0);
-  color: white;
+  background: linear-gradient(135deg, var(--secondary-color), var(--danger-color));
+  color: var(--text-on-primary);
+  box-shadow: var(--shadow-md);
 }
 
 .principal-button:hover {
-  background: linear-gradient(135deg, #5a35a0, #4a2c7f);
-  transform: scale(1.02);
-}
-
-.student-card {
-  border-top: 4px solid #28a745;
-}
-
-.librarian-card {
-  border-top: 4px solid #007bff;
-}
-
-.principal-card {
-  border-top: 4px solid #6f42c1;
+  background: linear-gradient(135deg, #5855EB, #DC2626);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
 .info-section {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
+  margin-top: 3rem;
 }
 
 .info-card {
-  background: #f8f9fa;
-  border-radius: 12px;
-  padding: 1.5rem;
-  border: 1px solid #e9ecef;
+  background: var(--card-bg);
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.info-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
 }
 
 .info-card h3 {
-  color: #333;
-  margin: 0 0 1rem 0;
-  font-size: 1.2rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  text-align: center;
 }
 
 .hours-grid {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 0.5rem 1rem;
-  font-size: 0.9rem;
+  gap: 1rem 2rem;
+  color: var(--text-secondary);
+  font-size: 1rem;
 }
 
-.hours-grid div:nth-child(odd) {
+.hours-grid > div:nth-child(odd) {
   font-weight: 600;
-  color: #333;
-}
-
-.hours-grid div:nth-child(even) {
-  color: #666;
-  text-align: right;
+  color: var(--text-primary);
 }
 
 .info-card ul {
-  margin: 0;
-  padding: 0;
   list-style: none;
+  padding: 0;
 }
 
 .info-card li {
-  padding: 0.5rem 0;
-  color: #555;
-  font-size: 0.9rem;
-  border-bottom: 1px solid #e9ecef;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  padding-left: 0;
+  line-height: 1.5;
 }
 
-.info-card li:last-child {
-  border-bottom: none;
+.info-card strong {
+  color: var(--text-primary);
+  font-weight: 600;
 }
 
 .landing-footer {
   text-align: center;
-  margin-top: 2rem;
-  color: rgba(255, 255, 255, 0.8);
+  padding: 3rem 0 2rem 0;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-color);
+  margin-top: 3rem;
   font-size: 0.9rem;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .landing-header {
+    padding: 3rem 0 2rem 0;
+    margin-bottom: 2rem;
+  }
+  
   .landing-header h1 {
     font-size: 2.5rem;
   }
@@ -224,43 +299,55 @@
     font-size: 1.1rem;
   }
   
-  .landing-main {
-    padding: 1.5rem;
-  }
-  
   .access-cards {
     grid-template-columns: 1fr;
     gap: 1.5rem;
+    margin-bottom: 3rem;
   }
   
   .access-card {
-    padding: 1.5rem;
+    padding: 2rem;
   }
   
   .card-icon {
     font-size: 3rem;
+    height: 3rem;
+    margin-bottom: 1rem;
+  }
+  
+  .access-card h2 {
+    font-size: 1.5rem;
   }
   
   .info-section {
-    grid-template-columns: 1fr;
     gap: 1.5rem;
+    margin-top: 2rem;
+  }
+  
+  .info-card {
+    padding: 1.5rem;
+  }
+  
+  .landing-container {
+    padding: 0 0.5rem;
+  }
+  
+  .landing-header {
+    margin: 0 -0.5rem 2rem -0.5rem;
   }
 }
 
 @media (max-width: 480px) {
-  .landing-page {
-    padding: 0.5rem;
-  }
-  
-  .landing-header h1 {
-    font-size: 2rem;
-  }
-  
-  .landing-main {
-    padding: 1rem;
-  }
-  
   .access-card {
-    padding: 1rem;
+    padding: 1.5rem;
+  }
+  
+  .access-button {
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+  }
+  
+  .feature-list li {
+    font-size: 0.9rem;
   }
 }
