@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import './AdminLogin.css';
 
-const AdminLogin = ({ role, onLoginSuccess, onBack }) => {
+const AdminLogin = () => {
+  const navigate = useNavigate();
+  const { role } = useParams();
   const [credentials, setCredentials] = useState({
     username: '',
     password: ''
@@ -42,7 +45,7 @@ const AdminLogin = ({ role, onLoginSuccess, onBack }) => {
       });
       
       if (response.data.message === 'Login successful') {
-        onLoginSuccess();
+        navigate('/dashboard');
       }
     } catch (error) {
       setError(error.response?.data?.error || 'Login failed');
@@ -98,7 +101,7 @@ const AdminLogin = ({ role, onLoginSuccess, onBack }) => {
           {error && <div className="error-message">{error}</div>}
           
           <div className="login-buttons">
-            <button type="button" onClick={onBack} className="back-button">
+            <button type="button" onClick={() => navigate('/')} className="back-button">
               Back to Home
             </button>
             <button type="submit" disabled={loading} className="login-button">

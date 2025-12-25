@@ -1,7 +1,17 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './LandingPage.css';
 
-const LandingPage = ({ onKioskAccess, onAdminAccess }) => {
+const LandingPage = () => {
+  const navigate = useNavigate();
+
+  const handleKioskAccess = () => {
+    navigate('/kiosk');
+  };
+
+  const handleAdminAccess = (role) => {
+    navigate(`/admin/${role}`);
+  };
   return (
     <div className="landing-page">
       <div className="landing-container">
@@ -25,7 +35,7 @@ const LandingPage = ({ onKioskAccess, onAdminAccess }) => {
               </ul>
               <button 
                 className="access-button student-button"
-                onClick={onKioskAccess}
+                onClick={handleKioskAccess}
               >
                 Enter Kiosk
               </button>
@@ -44,7 +54,7 @@ const LandingPage = ({ onKioskAccess, onAdminAccess }) => {
               </ul>
               <button 
                 className="access-button librarian-button"
-                onClick={() => onAdminAccess('librarian')}
+                onClick={() => handleAdminAccess('librarian')}
               >
                 Librarian Login
               </button>
@@ -63,7 +73,7 @@ const LandingPage = ({ onKioskAccess, onAdminAccess }) => {
               </ul>
               <button 
                 className="access-button principal-button"
-                onClick={() => onAdminAccess('principal')}
+                onClick={() => handleAdminAccess('principal')}
               >
                 Principal Login
               </button>

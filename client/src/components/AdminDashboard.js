@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './AdminDashboard.css';
 
-const AdminDashboard = ({ onLogout }) => {
+const AdminDashboard = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('holds');
   const [holds, setHolds] = useState([]);
   const [books, setBooks] = useState([]);
@@ -288,10 +290,10 @@ const AdminDashboard = ({ onLogout }) => {
       await axios.post('http://localhost:5000/api/admin/logout', {}, {
         withCredentials: true
       });
-      onLogout();
+      navigate('/');
     } catch (error) {
       console.error('Logout error:', error);
-      onLogout(); // Logout anyway
+      navigate('/'); // Navigate to home anyway
     }
   };
 
