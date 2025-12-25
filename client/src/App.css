@@ -30,7 +30,8 @@
   opacity: 0.9;
 }
 
-.admin-toggle {
+.home-button,
+.back-button {
   position: absolute;
   top: 0;
   right: 0;
@@ -44,7 +45,8 @@
   font-weight: 500;
 }
 
-.admin-toggle:hover {
+.home-button:hover,
+.back-button:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: scale(1.05);
 }
@@ -372,7 +374,7 @@ main {
     font-size: 1rem;
   }
   
-  .admin-toggle {
+  .home-button {
     position: static;
     margin-top: 1rem;
   }

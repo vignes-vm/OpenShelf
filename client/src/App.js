@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import './App.css';
 
-// Admin Dashboard Components
+// Components
+import LandingPage from './components/LandingPage';
 import AdminLogin from './components/AdminLogin';
 import AdminDashboard from './components/AdminDashboard';
 
@@ -91,15 +92,17 @@ const HoldTicket = ({ holdData, onClose }) => {
 };
 
 function App() {
+  const [currentView, setCurrentView] = useState('landing'); // 'landing', 'kiosk', 'admin'
+  const [userRole, setUserRole] = useState(null); // 'librarian', 'principal'
+  
+  // Kiosk state
   const [books, setBooks] = useState([]);
   const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [isAdminMode, setIsAdminMode] = useState(false);
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [holdModal, setHoldModal] = useState(null);
   const [holdTicket, setHoldTicket] = useState(null);
 
-  const fetchBooks = async () => {
+  const fetchBooks = useCallback(async () => {
     try {
       setLoading(true);
       const response = await axios.get(`http://localhost:5000/api/books?search=${search}`);
@@ -110,11 +113,13 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [search]);
 
   useEffect(() => {
-    fetchBooks();
-  }, [search]);
+    if (currentView === 'kiosk') {
+      fetchBooks();
+    }
+  }, [search, currentView, fetchBooks]);
 
   const handleHold = (book) => {
     if (book.status !== 'available') {
@@ -167,44 +172,71 @@ function App() {
     }
   };
 
-  // Admin mode toggle
-  const toggleAdminMode = () => {
-    setIsAdminMode(!isAdminMode);
-    if (isAdminMode) {
-      setIsAdminAuthenticated(false);
-    }
+  // Landing page handlers
+  const handleKioskAccess = () => {
+    setCurrentView('kiosk');
   };
 
-  if (isAdminMode) {
-    if (!isAdminAuthenticated) {
-      return (
-        <AdminLogin
-          onLoginSuccess={() => setIsAdminAuthenticated(true)}
-          onBack={() => setIsAdminMode(false)}
-        />
-      );
-    }
+  const handleAdminAccess = (role) => {
+    setUserRole(role);
+    setCurrentView('admin-login');
+  };
+
+  const handleLoginSuccess = () => {
+    setCurrentView('admin-dashboard');
+  };
+
+  const handleLogout = () => {
+    setUserRole(null);
+    setCurrentView('landing');
+  };
+
+  const handleBackToLanding = () => {
+    setCurrentView('landing');
+    setUserRole(null);
+  };
+
+  // Render different views based on currentView
+  if (currentView === 'landing') {
     return (
-      <AdminDashboard
-        onLogout={() => {
-          setIsAdminAuthenticated(false);
-          setIsAdminMode(false);
-        }}
+      <LandingPage
+        onKioskAccess={handleKioskAccess}
+        onAdminAccess={handleAdminAccess}
       />
     );
   }
+
+  if (currentView === 'admin-login') {
+    return (
+      <AdminLogin
+        role={userRole}
+        onLoginSuccess={handleLoginSuccess}
+        onBack={handleBackToLanding}
+      />
+    );
+  }
+
+  if (currentView === 'admin-dashboard') {
+    return (
+      <AdminDashboard
+        onLogout={handleLogout}
+      />
+    );
+  }
+
+  // Kiosk view (currentView === 'kiosk')
 
   return (
     <div className="App">
       <header className="App-header">
         <div className="header-content">
-          <h1>📚 OpenShelf</h1>
+          <h1>📚 OpenShelf Student Kiosk</h1>
           <p>Frictionless Book Discovery & Reservation</p>
           <button 
-            className="admin-toggle"
-            onClick={toggleAdminMode}
+            className="back-button"
+            onClick={handleBackToLanding}
           >
-            Admin Access
+            ← Back to Home
           </button>
         </div>
       </header>

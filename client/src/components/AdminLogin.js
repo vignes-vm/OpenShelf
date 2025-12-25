@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import './AdminLogin.css';
 
-const AdminLogin = ({ onLoginSuccess, onBack }) => {
+const AdminLogin = ({ role, onLoginSuccess, onBack }) => {
   const [credentials, setCredentials] = useState({
     username: '',
     password: ''
@@ -10,13 +10,34 @@ const AdminLogin = ({ onLoginSuccess, onBack }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const getRoleInfo = () => {
+    const roleInfo = {
+      librarian: {
+        title: '📋 Librarian Login',
+        description: 'Library Staff Access',
+        icon: '📋',
+        defaultCreds: 'librarian / lib123'
+      },
+      principal: {
+        title: '🎯 Principal Login', 
+        description: 'Administrative Access',
+        icon: '🎯',
+        defaultCreds: 'principal / prin123'
+      }
+    };
+    return roleInfo[role] || { title: 'Login', description: 'Access', icon: '🔐', defaultCreds: 'admin / admin123' };
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:5000/api/admin/login', credentials, {
+      const response = await axios.post('http://localhost:5000/api/admin/login', {
+        ...credentials,
+        role: role
+      }, {
         withCredentials: true
       });
       
@@ -37,12 +58,15 @@ const AdminLogin = ({ onLoginSuccess, onBack }) => {
     });
   };
 
+  const roleInfo = getRoleInfo();
+
   return (
     <div className="admin-login">
       <div className="login-container">
         <div className="login-header">
-          <h2>🔐 Admin Login</h2>
-          <p>Library Staff Access</p>
+          <div className="role-icon">{roleInfo.icon}</div>
+          <h2>{roleInfo.title}</h2>
+          <p>{roleInfo.description}</p>
         </div>
         
         <form onSubmit={handleSubmit} className="login-form">
@@ -75,7 +99,7 @@ const AdminLogin = ({ onLoginSuccess, onBack }) => {
           
           <div className="login-buttons">
             <button type="button" onClick={onBack} className="back-button">
-              Back to Kiosk
+              Back to Home
             </button>
             <button type="submit" disabled={loading} className="login-button">
               {loading ? 'Logging in...' : 'Login'}
@@ -84,7 +108,7 @@ const AdminLogin = ({ onLoginSuccess, onBack }) => {
         </form>
         
         <div className="login-help">
-          <p><small>Default: admin / admin123</small></p>
+          <p><small>Default: {roleInfo.defaultCreds}</small></p>
         </div>
       </div>
     </div>

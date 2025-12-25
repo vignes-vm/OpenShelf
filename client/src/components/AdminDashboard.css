@@ -13,9 +13,16 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.admin-header h1 {
-  margin: 0;
+.header-info h1 {
+  margin: 0 0 0.5rem 0;
   font-size: 2rem;
+}
+
+.user-info {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.9;
+  font-weight: 300;
 }
 
 .logout-button {
@@ -529,5 +536,238 @@
   .holds-table th,
   .holds-table td {
     padding: 0.5rem;
+  }
+}
+
+/* Student Status Section Styles */
+.student-status-section {
+  padding: 2rem 0;
+}
+
+.student-status-section h2 {
+  color: #333;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.search-student-section {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.search-student-section h3 {
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.student-activity h4 {
+  color: #333;
+  margin: 1.5rem 0 1rem 0;
+  font-size: 1.1rem;
+}
+
+.action-type {
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.action-type.hold {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.action-type.borrow {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.action-type.return {
+  background: #d4edda;
+  color: #155724;
+}
+
+.statistics-section {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.statistics-section h3 {
+  color: #333;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, #f8f9fa, #ffffff);
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card h4 {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0 0 0.5rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 0;
+  color: #333;
+}
+
+.stat-card:nth-child(1) .stat-number {
+  color: #667eea;
+}
+
+.stat-card:nth-child(2) .stat-number {
+  color: #28a745;
+}
+
+.stat-card:nth-child(3) .stat-number {
+  color: #ffc107;
+}
+
+.stat-card:nth-child(4) .stat-number {
+  color: #dc3545;
+}
+
+.stat-card:nth-child(5) .stat-number {
+  color: #6f42c1;
+}
+
+/* Dashboard Section */
+.dashboard-section {
+  padding: 2rem 0;
+}
+
+.dashboard-section h2 {
+  color: #333;
+  margin-bottom: 2rem;
+  text-align: center;
+  font-size: 2rem;
+}
+
+.stat-card.clickable {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.stat-card.clickable:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  border-left: 4px solid #667eea;
+}
+
+.stat-subtitle {
+  font-size: 0.8rem;
+  color: #888;
+  margin: 0.5rem 0 0 0;
+  font-style: italic;
+}
+
+/* Detail Sections */
+.books-detail-section,
+.holds-detail-section,
+.borrowed-detail-section,
+.students-detail-section {
+  padding: 2rem 0;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.section-header h2 {
+  color: #333;
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.section-header .back-button {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.section-header .back-button:hover {
+  background: #5a67d8;
+  transform: scale(1.02);
+}
+
+/* Status badges for books */
+.status-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.status-badge.available {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-badge.on_hold {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-badge.borrowed {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .section-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+  
+  .stat-card {
+    padding: 1rem;
+  }
+  
+  .stat-number {
+    font-size: 1.5rem;
   }
 }

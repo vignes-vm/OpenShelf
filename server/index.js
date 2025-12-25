@@ -164,28 +164,42 @@ app.post('/api/hold', async (req, res) => {
 // Admin login
 app.post('/api/admin/login', async (req, res) => {
     try {
-        const { username, password } = req.body;
-        
-        const result = await pool.query('SELECT * FROM admin_users WHERE username = $1', [username]);
-        if (result.rows.length === 0) {
-            return res.status(401).json({ error: 'Invalid credentials' });
-        }
-
-        const admin = result.rows[0];
-        const passwordValid = await bcrypt.compare(password, admin.password_hash);
-        
-        if (!passwordValid) {
-            return res.status(401).json({ error: 'Invalid credentials' });
-        }
-
-        req.session.adminId = admin.id;
-        req.session.adminUsername = admin.username;
-        
-        res.json({ message: 'Login successful', admin: { id: admin.id, username: admin.username } });
-    } catch (err) {
-        console.error('Error during login:', err);
-        res.status(500).json({ error: 'Database error' });
+    const { username, password, role } = req.body;
+    
+    const result = await pool.query('SELECT * FROM admin_users WHERE username = $1', [username]);
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
+
+    const admin = result.rows[0];
+    
+    // Check if role matches (for role-specific logins)
+    if (role && admin.role !== role) {
+      return res.status(401).json({ error: 'Invalid credentials for this role' });
+    }
+    
+    const passwordValid = await bcrypt.compare(password, admin.password_hash);
+    
+    if (!passwordValid) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    req.session.adminId = admin.id;
+    req.session.adminUsername = admin.username;
+    req.session.adminRole = admin.role;
+    
+    res.json({ 
+      message: 'Login successful', 
+      admin: { 
+        id: admin.id, 
+        username: admin.username, 
+        role: admin.role 
+      } 
+    });
+  } catch (err) {
+    console.error('Error during login:', err);
+    res.status(500).json({ error: 'Database error' });
+  }
 });
 
 // Admin logout
@@ -200,16 +214,15 @@ app.post('/api/admin/logout', (req, res) => {
 
 // Check admin session
 app.get('/api/admin/me', requireAuth, (req, res) => {
-    res.json({ 
-        authenticated: true, 
-        admin: { 
-            id: req.session.adminId, 
-            username: req.session.adminUsername 
-        } 
-    });
+  res.json({ 
+    authenticated: true, 
+    admin: { 
+      id: req.session.adminId, 
+      username: req.session.adminUsername,
+      role: req.session.adminRole
+    } 
+  });
 });
-
-// ADMIN DASHBOARD ENDPOINTS
 
 // Get all holds
 app.get('/api/admin/holds', requireAuth, async (req, res) => {

@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS admin_users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL CHECK (role IN ('admin', 'librarian', 'principal')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -60,7 +61,9 @@ INSERT INTO books (title, author, isbn, quantity) VALUES
 ('The Pragmatic Programmer', 'Andrew Hunt', '9780201616224', 1)
 ON CONFLICT DO NOTHING;
 
--- Create default admin user (password: admin123)
-INSERT INTO admin_users (username, password_hash) VALUES 
-('admin', '$2a$10$uOnghGQyhHeo.MF/QI6kPu4/GmhKTQmxlVS9p7YD.FwY6xsTLOdDC')
+-- Create admin user accounts with different roles
+INSERT INTO admin_users (username, password_hash, role) VALUES 
+('admin', '$2a$10$uOnghGQyhHeo.MF/QI6kPu4/GmhKTQmxlVS9p7YD.FwY6xsTLOdDC', 'admin'),
+('librarian', '$2a$10$B6BSvlR95tupAhX5Gti/DOWNGhY8/l0Djo8tuUFlAbNaX2EbCNoH2', 'librarian'),
+('principal', '$2a$10$8uzZNxyciBiEVEDMG2Nb8ONFQgiIzOOJOziKWmaEAzMGruXBtm97S', 'principal')
 ON CONFLICT (username) DO NOTHING;
