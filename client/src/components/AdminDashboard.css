@@ -64,6 +64,7 @@
   backdrop-filter: blur(10px);
   position: relative;
   z-index: 1;
+  margin-right: 80px;
 }
 
 .logout-button:hover {
@@ -1109,7 +1110,7 @@
   }
   
   .logout-button {
-    margin: 0;
+    margin-right: 60px;
   }
   
   .admin-nav {
@@ -1194,6 +1195,12 @@
   
   .user-info {
     font-size: 0.8rem;
+  }
+  
+  .logout-button {
+    margin-right: 50px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
   }
   
   .admin-content {
