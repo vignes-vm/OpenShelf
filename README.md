@@ -100,7 +100,7 @@ OpenShelf/
 
 ### 1. Landing Page
 
-![Landing Page](/Users/vignesvm/.gemini/antigravity/brain/7b80a9fb-3b9f-4c6c-b3ab-c1ebd0d1e690/landing_page_1766744320424.png)
+![Landing Page](/docs/screenshots/landing_page_1766744320424.png)
 
 **Description:**
 The landing page serves as the main entry point to the OpenShelf system. It features three distinct access cards:
@@ -124,7 +124,7 @@ The page also displays library hours and quick help information including hold d
 
 ### 2. Student Kiosk
 
-![Student Kiosk](/Users/vignesvm/.gemini/antigravity/brain/7b80a9fb-3b9f-4c6c-b3ab-c1ebd0d1e690/student_kiosk_page_1766744344173.png)
+![Student Kiosk](/docs/screenshots/student_kiosk_page_1766744344173.png)
 
 **Description:**
 The Student Kiosk is a public-facing interface designed for frictionless book discovery and reservation. Students can search for books using the search bar at the top, which filters results by title, author, or ISBN in real-time.
@@ -154,7 +154,7 @@ The Student Kiosk is a public-facing interface designed for frictionless book di
 
 ### 3. Hold Placement Modal
 
-![Hold Modal](/Users/vignesvm/.gemini/antigravity/brain/7b80a9fb-3b9f-4c6c-b3ab-c1ebd0d1e690/hold_modal_screenshot_1766744385733.png)
+![Hold Modal](/docs/screenshots/hold_modal_screenshot_1766744385733.png)
 
 **Description:**
 When a student clicks "Place Hold" on an available book, this modal appears to collect the student's roll number. The modal provides a focused interface for completing the hold request.
@@ -178,7 +178,7 @@ When a student clicks "Place Hold" on an available book, this modal appears to c
 
 ### 4. Librarian Login
 
-![Librarian Login](/Users/vignesvm/.gemini/antigravity/brain/7b80a9fb-3b9f-4c6c-b3ab-c1ebd0d1e690/librarian_login_page_1766744409503.png)
+![Librarian Login](/docs/screenshots/librarian_login_page_1766744409503.png)
 
 **Description:**
 The Librarian Login page provides secure authentication for library staff. The page features a clean, focused design with the librarian icon and role-specific branding.
@@ -208,7 +208,7 @@ The Librarian Login page provides secure authentication for library staff. The p
 
 ### 5. Principal Login
 
-![Principal Login](/Users/vignesvm/.gemini/antigravity/brain/7b80a9fb-3b9f-4c6c-b3ab-c1ebd0d1e690/principal_login_page_1766744431343.png)
+![Principal Login](/docs/screenshots/principal_login_page_1766744431343.png)
 
 **Description:**
 The Principal Login page provides administrative access with the highest level of permissions. Similar to the librarian login but with principal-specific branding and role identification.
@@ -237,7 +237,7 @@ Principals have read-only access to all library data with additional capabilitie
 
 ### 6. Librarian Dashboard - Holds Tab
 
-![Librarian Dashboard](/Users/vignesvm/.gemini/antigravity/brain/7b80a9fb-3b9f-4c6c-b3ab-c1ebd0d1e690/librarian_dashboard_1766744683758.png)
+![Librarian Dashboard](/docs/screenshots/librarian_dashboard_1766744683758.png)
 
 **Description:**
 The Librarian Dashboard opens to the "Active Holds" tab by default, showing all current book holds that need to be fulfilled. This is the primary workspace for librarians to manage day-to-day operations.
@@ -273,7 +273,7 @@ The Librarian Dashboard opens to the "Active Holds" tab by default, showing all 
 
 ### 7. Librarian Dashboard - Inventory Tab
 
-![Inventory Management](/Users/vignesvm/.gemini/antigravity/brain/7b80a9fb-3b9f-4c6c-b3ab-c1ebd0d1e690/librarian_inventory_dashboard_1766744729152.png)
+![Inventory Management](/docs/screenshots/librarian_inventory_dashboard_1766744729152.png)
 
 **Description:**
 The Inventory tab provides comprehensive book management capabilities for librarians. It consists of two main sections: adding new books and viewing/managing current inventory.
@@ -307,7 +307,7 @@ Displays all books in the library with the following columns:
 
 ### 8. Principal Dashboard - Overview
 
-![Principal Dashboard](/Users/vignesvm/.gemini/antigravity/brain/7b80a9fb-3b9f-4c6c-b3ab-c1ebd0d1e690/principal_dashboard_overview_1766744818217.png)
+![Principal Dashboard](/docs/screenshots/principal_dashboard_overview_1766744818217.png)
 
 **Description:**
 The Principal Dashboard provides a comprehensive overview of the entire library system with high-level statistics and analytics. This is the default view for principals, offering at-a-glance insights into library operations.
