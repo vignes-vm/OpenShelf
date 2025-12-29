@@ -27,7 +27,37 @@ CREATE TABLE IF NOT EXISTS transactions (
     action_type VARCHAR(20) NOT NULL CHECK (action_type IN ('hold', 'issue', 'return')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP,
+    due_date TIMESTAMP,
     status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'expired', 'completed'))
+);
+
+-- Book renewals table
+CREATE TABLE IF NOT EXISTS renewals (
+    id SERIAL PRIMARY KEY,
+    transaction_id INTEGER NOT NULL REFERENCES transactions(id),
+    renewed_by INTEGER NOT NULL REFERENCES admin_users(id),
+    renewal_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    old_due_date TIMESTAMP NOT NULL,
+    new_due_date TIMESTAMP NOT NULL,
+    renewal_count INTEGER DEFAULT 1,
+    max_renewals INTEGER DEFAULT 2,
+    notes TEXT
+);
+
+-- Fines table
+CREATE TABLE IF NOT EXISTS fines (
+    id SERIAL PRIMARY KEY,
+    transaction_id INTEGER NOT NULL REFERENCES transactions(id),
+    roll_no VARCHAR(20) NOT NULL REFERENCES students(roll_no),
+    amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    days_overdue INTEGER NOT NULL DEFAULT 0,
+    fine_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'paid', 'waived')),
+    payment_date TIMESTAMP,
+    payment_method VARCHAR(20) DEFAULT 'cash' CHECK (payment_method IN ('cash', 'online', 'other')),
+    collected_by INTEGER REFERENCES admin_users(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Admin users table for dashboard authentication
@@ -46,6 +76,12 @@ CREATE INDEX IF NOT EXISTS idx_transactions_book_id ON transactions(book_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_roll_no ON transactions(roll_no);
 CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions(status);
 CREATE INDEX IF NOT EXISTS idx_transactions_expires_at ON transactions(expires_at);
+CREATE INDEX IF NOT EXISTS idx_transactions_due_date ON transactions(due_date);
+CREATE INDEX IF NOT EXISTS idx_renewals_transaction_id ON renewals(transaction_id);
+CREATE INDEX IF NOT EXISTS idx_fines_transaction_id ON fines(transaction_id);
+CREATE INDEX IF NOT EXISTS idx_fines_roll_no ON fines(roll_no);
+CREATE INDEX IF NOT EXISTS idx_fines_status ON fines(status);
+CREATE INDEX IF NOT EXISTS idx_fines_fine_date ON fines(fine_date);
 
 -- Sample data for testing
 INSERT INTO students (roll_no, name, dept) VALUES 

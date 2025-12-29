@@ -62,6 +62,56 @@ cron.schedule('0 * * * *', async () => {
     }
 });
 
+// Cron job to calculate daily fines (runs daily at 6 AM)
+cron.schedule('0 6 * * *', async () => {
+    console.log('Running daily fine calculation...');
+    try {
+        // Get all overdue issued books
+        const overdueBooks = await pool.query(`
+            SELECT id, roll_no, due_date,
+                   DATE_PART('day', CURRENT_DATE - due_date)::INTEGER as days_overdue
+            FROM transactions 
+            WHERE action_type = 'issue' 
+            AND status = 'active' 
+            AND due_date < CURRENT_DATE
+        `);
+
+        let finesCalculated = 0;
+        
+        for (const book of overdueBooks.rows) {
+            const daysOverdue = book.days_overdue;
+            const fineAmount = daysOverdue * 1; // 1 rupee per day
+            
+            // Check if fine already exists for today
+            const existingFine = await pool.query(`
+                SELECT id FROM fines 
+                WHERE transaction_id = $1 AND fine_date = CURRENT_DATE
+            `, [book.id]);
+
+            if (existingFine.rows.length === 0) {
+                // Create new fine record
+                await pool.query(`
+                    INSERT INTO fines (transaction_id, roll_no, amount, days_overdue, fine_date)
+                    VALUES ($1, $2, $3, $4, CURRENT_DATE)
+                `, [book.id, book.roll_no, fineAmount, daysOverdue]);
+                finesCalculated++;
+            } else {
+                // Update existing fine record
+                await pool.query(`
+                    UPDATE fines 
+                    SET amount = $1, days_overdue = $2, updated_at = CURRENT_TIMESTAMP
+                    WHERE transaction_id = $3 AND fine_date = CURRENT_DATE
+                `, [fineAmount, daysOverdue, book.id]);
+                finesCalculated++;
+            }
+        }
+
+        console.log(`Calculated fines for ${finesCalculated} overdue books`);
+    } catch (err) {
+        console.error('Error in daily fine calculation job:', err);
+    }
+});
+
 // PUBLIC KIOSK ENDPOINTS
 
 // Search books (supports title, author, ISBN)
@@ -272,11 +322,12 @@ app.post('/api/admin/issue', requireAuth, async (req, res) => {
             WHERE id = $1
         `, [transactionId]);
 
-        // Create issue transaction
+        // Create issue transaction with due date (14 days from issue)
+        const dueDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
         await pool.query(`
-            INSERT INTO transactions (book_id, roll_no, action_type)
-            VALUES ($1, $2, $3)
-        `, [hold.book_id, hold.roll_no, 'issue']);
+            INSERT INTO transactions (book_id, roll_no, action_type, due_date)
+            VALUES ($1, $2, $3, $4)
+        `, [hold.book_id, hold.roll_no, 'issue', dueDate]);
 
         // Update book status
         await pool.query(`
@@ -286,7 +337,7 @@ app.post('/api/admin/issue', requireAuth, async (req, res) => {
         `, [hold.book_id]);
 
         await pool.query('COMMIT');
-        res.json({ message: 'Book issued successfully' });
+        res.json({ message: 'Book issued successfully', dueDate });
     } catch (err) {
         await pool.query('ROLLBACK');
         console.error('Error issuing book:', err);
@@ -345,14 +396,25 @@ app.post('/api/admin/return', requireAuth, async (req, res) => {
 app.get('/api/admin/issued-books', requireAuth, async (req, res) => {
   try {
     const query = `
-      SELECT t.id, t.book_id, t.roll_no, t.created_at,
+      SELECT t.id, t.book_id, t.roll_no, t.created_at, t.due_date,
+             CASE 
+               WHEN t.due_date < CURRENT_DATE THEN 'overdue'
+               WHEN t.due_date <= CURRENT_DATE + INTERVAL '3 days' THEN 'due_soon'
+               ELSE 'active'
+             END as issue_status,
+             CASE 
+               WHEN t.due_date < CURRENT_DATE THEN DATE_PART('day', CURRENT_DATE - t.due_date)::INTEGER
+               ELSE 0
+             END as days_overdue,
              b.title, b.author, b.isbn,
-             s.name as student_name, s.dept
+             s.name as student_name, s.dept,
+             (SELECT COUNT(*) FROM renewals r WHERE r.transaction_id = t.id) as renewal_count,
+             (SELECT SUM(amount) FROM fines f WHERE f.transaction_id = t.id AND f.status = 'pending') as pending_fine
       FROM transactions t
       JOIN books b ON t.book_id = b.id
       JOIN students s ON t.roll_no = s.roll_no
       WHERE t.action_type = 'issue' AND t.status = 'active'
-      ORDER BY t.created_at ASC
+      ORDER BY t.due_date ASC, t.created_at ASC
     `;
     const result = await pool.query(query);
     res.json(result.rows);
@@ -382,6 +444,281 @@ app.get('/api/admin/student/:rollNo', requireAuth, async (req, res) => {
         res.json(result.rows);
     } catch (err) {
         console.error('Error searching by roll number:', err);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+// RENEWAL AND FINE MANAGEMENT ENDPOINTS
+
+// Check renewal eligibility
+app.get('/api/admin/renewal-check/:transactionId', requireAuth, async (req, res) => {
+    try {
+        const { transactionId } = req.params;
+        
+        const query = `
+            SELECT t.id, t.book_id, t.roll_no, t.due_date, t.created_at,
+                   b.title, b.author, s.name as student_name,
+                   (SELECT COUNT(*) FROM renewals r WHERE r.transaction_id = t.id) as renewal_count,
+                   (SELECT SUM(amount) FROM fines f WHERE f.transaction_id = t.id AND f.status = 'pending') as pending_fine,
+                   CASE 
+                     WHEN t.due_date < CURRENT_DATE THEN DATE_PART('day', CURRENT_DATE - t.due_date)::INTEGER
+                     ELSE 0
+                   END as days_overdue
+            FROM transactions t
+            JOIN books b ON t.book_id = b.id
+            JOIN students s ON t.roll_no = s.roll_no
+            WHERE t.id = $1 AND t.action_type = 'issue' AND t.status = 'active'
+        `;
+        
+        const result = await pool.query(query, [transactionId]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Transaction not found or not eligible for renewal' });
+        }
+        
+        const transaction = result.rows[0];
+        const maxRenewals = 2; // Allow up to 2 renewals
+        const canRenew = transaction.renewal_count < maxRenewals;
+        
+        res.json({
+            transaction,
+            canRenew,
+            maxRenewals,
+            renewalCount: transaction.renewal_count,
+            pendingFine: transaction.pending_fine || 0,
+            daysOverdue: transaction.days_overdue
+        });
+    } catch (err) {
+        console.error('Error checking renewal eligibility:', err);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+// Renew book
+app.post('/api/admin/renew', requireAuth, async (req, res) => {
+    try {
+        const { transactionId, notes } = req.body;
+        const renewedBy = req.session.adminId;
+
+        await pool.query('BEGIN');
+
+        // Get transaction details
+        const transactionResult = await pool.query(`
+            SELECT t.*, 
+                   (SELECT COUNT(*) FROM renewals r WHERE r.transaction_id = t.id) as renewal_count
+            FROM transactions t 
+            WHERE t.id = $1 AND t.action_type = 'issue' AND t.status = 'active'
+        `, [transactionId]);
+
+        if (transactionResult.rows.length === 0) {
+            await pool.query('ROLLBACK');
+            return res.status(404).json({ error: 'Transaction not found or not eligible for renewal' });
+        }
+
+        const transaction = transactionResult.rows[0];
+        const maxRenewals = 2;
+
+        if (transaction.renewal_count >= maxRenewals) {
+            await pool.query('ROLLBACK');
+            return res.status(400).json({ error: 'Maximum renewals reached' });
+        }
+
+        // Check for pending fines
+        const pendingFines = await pool.query(`
+            SELECT SUM(amount) as total_fine 
+            FROM fines 
+            WHERE transaction_id = $1 AND status = 'pending'
+        `, [transactionId]);
+
+        const totalFine = pendingFines.rows[0]?.total_fine || 0;
+
+        // Calculate new due date (14 days from current due date or today, whichever is later)
+        const currentDue = new Date(transaction.due_date);
+        const today = new Date();
+        const baseDate = currentDue > today ? currentDue : today;
+        const newDueDate = new Date(baseDate.getTime() + 14 * 24 * 60 * 60 * 1000);
+
+        // Create renewal record
+        await pool.query(`
+            INSERT INTO renewals (transaction_id, renewed_by, old_due_date, new_due_date, renewal_count, notes)
+            VALUES ($1, $2, $3, $4, $5, $6)
+        `, [transactionId, renewedBy, transaction.due_date, newDueDate, transaction.renewal_count + 1, notes]);
+
+        // Update transaction due date
+        await pool.query(`
+            UPDATE transactions 
+            SET due_date = $1 
+            WHERE id = $2
+        `, [newDueDate, transactionId]);
+
+        await pool.query('COMMIT');
+
+        res.json({ 
+            message: 'Book renewed successfully', 
+            newDueDate,
+            renewalCount: transaction.renewal_count + 1,
+            pendingFine: totalFine
+        });
+    } catch (err) {
+        await pool.query('ROLLBACK');
+        console.error('Error renewing book:', err);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+// Get overdue books
+app.get('/api/admin/overdue-books', requireAuth, async (req, res) => {
+    try {
+        const query = `
+            SELECT t.id, t.book_id, t.roll_no, t.created_at, t.due_date,
+                   DATE_PART('day', CURRENT_DATE - t.due_date)::INTEGER as days_overdue,
+                   b.title, b.author, b.isbn,
+                   s.name as student_name, s.dept,
+                   (SELECT COUNT(*) FROM renewals r WHERE r.transaction_id = t.id) as renewal_count,
+                   COALESCE(f.total_fine, 0) as total_fine,
+                   COALESCE(f.pending_fine, 0) as pending_fine
+            FROM transactions t
+            JOIN books b ON t.book_id = b.id
+            JOIN students s ON t.roll_no = s.roll_no
+            LEFT JOIN (
+                SELECT transaction_id, 
+                       SUM(amount) as total_fine,
+                       SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) as pending_fine
+                FROM fines 
+                GROUP BY transaction_id
+            ) f ON f.transaction_id = t.id
+            WHERE t.action_type = 'issue' 
+            AND t.status = 'active' 
+            AND t.due_date < CURRENT_DATE
+            ORDER BY days_overdue DESC
+        `;
+        const result = await pool.query(query);
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Error fetching overdue books:', err);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+// Calculate and add fine
+app.post('/api/admin/calculate-fine', requireAuth, async (req, res) => {
+    try {
+        const { transactionId } = req.body;
+
+        await pool.query('BEGIN');
+
+        // Get transaction details
+        const transactionResult = await pool.query(`
+            SELECT * FROM transactions 
+            WHERE id = $1 AND action_type = 'issue' AND status = 'active'
+        `, [transactionId]);
+
+        if (transactionResult.rows.length === 0) {
+            await pool.query('ROLLBACK');
+            return res.status(404).json({ error: 'Transaction not found' });
+        }
+
+        const transaction = transactionResult.rows[0];
+        const dueDate = new Date(transaction.due_date);
+        const today = new Date();
+        
+        // Calculate days overdue
+        const daysOverdue = Math.max(0, Math.floor((today - dueDate) / (1000 * 60 * 60 * 24)));
+        
+        if (daysOverdue === 0) {
+            await pool.query('ROLLBACK');
+            return res.json({ message: 'Book is not overdue', fine: 0, daysOverdue: 0 });
+        }
+
+        // Check if fine already exists for today
+        const existingFine = await pool.query(`
+            SELECT * FROM fines 
+            WHERE transaction_id = $1 AND fine_date = CURRENT_DATE
+        `, [transactionId]);
+
+        let fineAmount = daysOverdue * 1; // 1 rupee per day
+
+        if (existingFine.rows.length === 0) {
+            // Create new fine record
+            await pool.query(`
+                INSERT INTO fines (transaction_id, roll_no, amount, days_overdue, fine_date)
+                VALUES ($1, $2, $3, $4, CURRENT_DATE)
+            `, [transactionId, transaction.roll_no, fineAmount, daysOverdue]);
+        } else {
+            // Update existing fine record
+            await pool.query(`
+                UPDATE fines 
+                SET amount = $1, days_overdue = $2, updated_at = CURRENT_TIMESTAMP
+                WHERE transaction_id = $3 AND fine_date = CURRENT_DATE
+            `, [fineAmount, daysOverdue, transactionId]);
+        }
+
+        await pool.query('COMMIT');
+
+        res.json({ 
+            message: 'Fine calculated successfully', 
+            fine: fineAmount, 
+            daysOverdue,
+            ratePerDay: 1
+        });
+    } catch (err) {
+        await pool.query('ROLLBACK');
+        console.error('Error calculating fine:', err);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+// Collect fine payment
+app.post('/api/admin/collect-fine', requireAuth, async (req, res) => {
+    try {
+        const { fineId, paymentMethod = 'cash', notes } = req.body;
+        const collectedBy = req.session.adminId;
+
+        await pool.query('BEGIN');
+
+        // Update fine status
+        await pool.query(`
+            UPDATE fines 
+            SET status = 'paid', 
+                payment_date = CURRENT_TIMESTAMP, 
+                payment_method = $1,
+                collected_by = $2,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = $3 AND status = 'pending'
+        `, [paymentMethod, collectedBy, fineId]);
+
+        await pool.query('COMMIT');
+
+        res.json({ message: 'Fine collected successfully' });
+    } catch (err) {
+        await pool.query('ROLLBACK');
+        console.error('Error collecting fine:', err);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+// Get student fine history
+app.get('/api/admin/student-fines/:rollNo', requireAuth, async (req, res) => {
+    try {
+        const { rollNo } = req.params;
+        
+        const query = `
+            SELECT f.id, f.transaction_id, f.amount, f.days_overdue, f.fine_date, f.status,
+                   f.payment_date, f.payment_method, f.created_at,
+                   b.title, b.author,
+                   a.username as collected_by_name
+            FROM fines f
+            JOIN transactions t ON f.transaction_id = t.id
+            JOIN books b ON t.book_id = b.id
+            LEFT JOIN admin_users a ON f.collected_by = a.id
+            WHERE f.roll_no = $1
+            ORDER BY f.created_at DESC
+        `;
+        
+        const result = await pool.query(query, [rollNo]);
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Error fetching student fines:', err);
         res.status(500).json({ error: 'Database error' });
     }
 });
